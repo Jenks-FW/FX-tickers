@@ -61,8 +61,11 @@ mxdt <- dbGetQuery(scon, 'SELECT TOP 1 data_timestamp
                           WHERE index_id = 4884 
                           ORDER BY data_timestamp desc')
 
+mxdt <- ymd(mxdt[1,1]) 
+#mxdt <- ymd('2020-02-02') # set a date to troubleshoot
+
 # Make sure there's a date value
-if (nrow(mxdt) != 1) {
+if (is.na(mxdt)) {
   mxdt <- ymd('1960-01-01')
 }
 
@@ -105,7 +108,7 @@ fx_new <-
   bind_rows(fx_to_usd, fx_per_usd) %>% 
   inner_join(., granularity_index, by = 'granularity1') %>%
   mutate(index_id = 4884L) %>% 
-  select(index_id, granularity_item_id, data_timestamp, data_value)
+  select(index_id, granularity_item_id, data_timestamp, data_value)#, granularity1)
 
 # 302 unique granularities after joining to granularity_index
 #unique(fx_new$granularity_item_id)
@@ -136,3 +139,15 @@ dbWriteTable(scon,
              overwrite = F,
              append = T)
 
+
+## --------------- Granularities ------------------------------------
+#Granularities <- fx_new$granularity1
+#Currencies <- str_extract_all(fx_new$granularity1[1:151], pattern = "^[A-Z]{3}")
+#currency_map <- 
+#  tbl(fcon, dbplyr::in_schema('ref_v2', 'iso_currency_map')) %>%
+#  select(iso_currency, currency_desc) %>% 
+#  collect()
+#currency_map %<>% filter(iso_currency %in% Currencies) 
+#write_csv(currency_map, path = "C:/Users/bjenkins/Documents/RStudio/FX-Tickers/currency_map.csv")
+
+          
